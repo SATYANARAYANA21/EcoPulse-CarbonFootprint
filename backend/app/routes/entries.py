@@ -7,7 +7,6 @@ GET  /api/entries/{id} — Retrieve history for a specific device.
 
 import logging
 from datetime import UTC, datetime
-from typing import get_type_hints
 
 from fastapi import APIRouter, Body, HTTPException, Path, Request
 from pydantic import BaseModel

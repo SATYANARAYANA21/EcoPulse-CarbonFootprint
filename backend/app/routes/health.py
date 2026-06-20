@@ -8,7 +8,6 @@ Designed for Cloud Run health checks and monitoring dashboards.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import get_type_hints
 
 from fastapi import APIRouter
 from pydantic import BaseModel

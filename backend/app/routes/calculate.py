@@ -5,7 +5,6 @@ Accepts validated lifestyle inputs, delegates to the pure carbon calculator,
 and returns structured results with category breakdown and benchmark comparisons.
 """
 
-from typing import get_type_hints
 
 from fastapi import APIRouter, Body, Request
 

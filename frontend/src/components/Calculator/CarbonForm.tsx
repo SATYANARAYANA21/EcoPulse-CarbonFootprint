@@ -156,8 +156,8 @@ export const CarbonForm = () => {
 
   const updateField = <K extends keyof CarbonInputForm>(field: K, value: CarbonInputForm[K]) => {
     setValues(prev => ({ ...prev, [field]: value }));
+    // eslint-disable-next-line security/detect-object-injection
     if (touched[field]) {
-      // eslint-disable-next-line security/detect-object-injection
       validateField(field, value);
     }
     if (storeError) clearError();

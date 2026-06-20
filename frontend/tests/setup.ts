@@ -3,6 +3,7 @@
  * Extends expect with custom DOM matchers and jest-axe matchers.
  */
 import '@testing-library/jest-dom';
+/* eslint-disable security/detect-object-injection */
 import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { configureAxe, toHaveNoViolations } from 'jest-axe';
