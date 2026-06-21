@@ -2,29 +2,15 @@
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| 1.0.x   | ✅        |
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.0.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
-**Do not open a public GitHub issue for security vulnerabilities.**
+If you discover a security vulnerability within EcoPulse, please send an e-mail to security@ecopulse.local instead of creating a public issue.
 
-Please report security issues by emailing the maintainer directly.
-Include a description of the vulnerability, steps to reproduce,
-and the potential impact.
-
-Expected response time: within 72 hours.
-Responsible disclosure is appreciated and will be credited.
-
-## Security Architecture
-
-See [SECURITY_ARCHITECTURE.md](SECURITY_ARCHITECTURE.md) for full details on:
-- Threat model and mitigations
-- Security headers (CSP, HSTS, X-Frame-Options)
-- Input validation (Zod + Pydantic v2 dual-layer)
-- Rate limiting strategy
-- Credential management (Application Default Credentials)
-- Firestore security rules
-- Privacy by design
-- Docker non-root user setup
+## Security Features
+- **Strict ESLint Rules**: `security/detect-object-injection` and `no-control-regex` enforce secure coding practices.
+- **Rate Limiting**: `slowapi` protects against DDoS by capping API requests per IP.
+- **Input Validation**: `Zod` and `Pydantic` enforce strict schemas on all inbound data to prevent injection attacks.

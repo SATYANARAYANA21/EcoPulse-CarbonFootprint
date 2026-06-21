@@ -40,3 +40,5 @@ Thumbs.db
 !frontend/tsconfig.node.json
 gcloud-service-key.json
 application_default_credentials.json
+
+.vercel

@@ -9,9 +9,18 @@ import type { InsightsResponse } from '../src/types';
 
 const mockSaveEntry = vi.fn();
 
+let mockIsSaving = false;
+let mockSaveSuccess = false;
+const mockClearSaveSuccess = vi.fn();
+
 vi.mock('../src/store/carbonStore', () => ({
   useCarbonStore: (selector: (s: Record<string, unknown>) => unknown) =>
-    selector({ saveEntry: mockSaveEntry }),
+    selector({ 
+      saveEntry: mockSaveEntry,
+      isSaving: mockIsSaving,
+      saveSuccess: mockSaveSuccess,
+      clearSaveSuccess: mockClearSaveSuccess,
+    }),
 }));
 
 const mockInsightsGemini: InsightsResponse = {
@@ -47,7 +56,19 @@ const mockInsightsRules: InsightsResponse = {
   source: 'rules',
 };
 
+import { afterEach, beforeEach } from 'vitest';
+
 describe('InsightsList', () => {
+  beforeEach(() => {
+    mockIsSaving = false;
+    mockSaveSuccess = false;
+    mockClearSaveSuccess.mockClear();
+    vi.useFakeTimers();
+  });
+  
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   it('renders all 3 insights', () => {
     render(<InsightsList insightsResponse={mockInsightsGemini} />);
     const articles = screen.getAllByRole('article');
@@ -105,5 +126,25 @@ describe('InsightsList', () => {
   it('renders Save to History button', () => {
     render(<InsightsList insightsResponse={mockInsightsGemini} />);
     expect(screen.getByRole('button', { name: /save.*history/i })).toBeInTheDocument();
+  });
+
+  it('shows saving state correctly', () => {
+    mockIsSaving = true;
+    render(<InsightsList insightsResponse={mockInsightsGemini} />);
+    const btn = screen.getByRole('button');
+    expect(btn).toHaveTextContent(/saving/i);
+    expect(btn).toBeDisabled();
+  });
+
+  it('shows save success state and auto-clears', () => {
+    mockSaveSuccess = true;
+    render(<InsightsList insightsResponse={mockInsightsGemini} />);
+    const btn = screen.getByRole('button');
+    expect(btn).toHaveTextContent(/saved/i);
+    expect(screen.getByText(/entry added to your history tab/i)).toBeInTheDocument();
+    
+    // Test auto-hide timer
+    vi.advanceTimersByTime(3000);
+    expect(mockClearSaveSuccess).toHaveBeenCalledTimes(1);
   });
 });

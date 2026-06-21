@@ -17,6 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["vitest", "vite/client"]
   },
-  "include": ["src", "tests"],
+  "include": ["src"],
+  "exclude": ["tests", "node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -15,7 +15,6 @@ import json
 import logging
 from datetime import UTC, datetime
 
-import google.cloud.pubsub_v1 as pubsub_v1
 
 from app.core.config import get_settings
 
@@ -28,6 +27,7 @@ def _publish_message(
     payload: dict,
 ) -> None:
     """Synchronous Pub/Sub publish (runs in thread-pool executor)."""
+    import google.cloud.pubsub_v1 as pubsub_v1  # noqa: PLC0415
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, topic_id)
 

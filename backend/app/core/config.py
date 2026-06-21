@@ -38,19 +38,19 @@ class Settings(BaseSettings):
     # Feature Flags
     # -----------------------------------------------------------------------
     USE_GEMINI: bool = Field(
-        default=True,
+        default=False,
         description="Enable Vertex AI Gemini for AI insights (requires GCP credentials)",
     )
     USE_FIRESTORE: bool = Field(
-        default=True,
+        default=False,
         description="Enable Firestore persistence (requires GCP credentials)",
     )
     USE_BIGQUERY: bool = Field(
-        default=True,
+        default=False,
         description="Enable BigQuery analytics logging (requires GCP credentials)",
     )
     USE_PUBSUB: bool = Field(
-        default=True,
+        default=False,
         description="Enable Pub/Sub event publishing (requires GCP credentials)",
     )
 
@@ -77,9 +77,13 @@ class Settings(BaseSettings):
     # -----------------------------------------------------------------------
     # Gemini / Vertex AI
     # -----------------------------------------------------------------------
+    GEMINI_API_KEY: str | None = Field(
+        default=None,
+        description="Standard Google Gemini API Key",
+    )
     GEMINI_MODEL: str = Field(
         default="gemini-1.5-flash",
-        description="Vertex AI Generative Model identifier",
+        description="Generative Model identifier",
     )
 
     # -----------------------------------------------------------------------

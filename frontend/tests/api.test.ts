@@ -97,6 +97,24 @@ describe('apiClient.calculateFootprint', () => {
     mockFetchError(500, 'Internal Server Error');
     await expect(apiClient.calculateFootprint(mockInput)).rejects.toThrow('Internal Server Error');
   });
+
+  it('handles error response with no valid JSON body', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: async () => { throw new Error('Invalid JSON'); },
+    } as Response);
+    await expect(apiClient.calculateFootprint(mockInput)).rejects.toThrow('HTTP 502');
+  });
+
+  it('handles error response with message fallback', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ message: 'Bad Request Message' }),
+    } as Response);
+    await expect(apiClient.calculateFootprint(mockInput)).rejects.toThrow('Bad Request Message');
+  });
 });
 
 describe('apiClient.getInsights', () => {

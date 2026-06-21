@@ -36,6 +36,7 @@
     "security/detect-no-csrf-before-method-override": "warn",
     "security/detect-non-literal-fs-filename": "warn",
     "security/detect-non-literal-require": "warn",
-    "security/detect-possible-timing-attacks": "warn"
+    "security/detect-possible-timing-attacks": "warn",
+    "no-control-regex": "warn"
   }
 }

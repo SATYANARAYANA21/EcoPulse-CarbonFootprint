@@ -14,7 +14,6 @@ import asyncio
 import logging
 from datetime import UTC, datetime
 
-from google.cloud import bigquery
 
 from app.core.config import get_settings
 
@@ -38,6 +37,7 @@ def _write_to_bigquery(
     project_id: str,
 ) -> None:
     """Synchronous BigQuery insert (runs in thread-pool executor)."""
+    from google.cloud import bigquery  # noqa: PLC0415
     client = bigquery.Client(project=project_id)
     table_id = f"{project_id}.{dataset}.{table}"
 

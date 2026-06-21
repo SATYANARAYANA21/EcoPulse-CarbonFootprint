@@ -109,4 +109,19 @@ describe('ResultsDisplay', () => {
     const section = screen.getByRole('region', { name: /your annual carbon footprint/i });
     expect(section).toHaveAttribute('aria-live', 'polite');
   });
+
+  it('renders loading state for insights button', () => {
+    mockInsightsState = null;
+    mockIsLoading = true;
+    render(<ResultsDisplay result={mockResult} />);
+    const btn = screen.getByRole('button');
+    expect(btn).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByText(/generating insights/i)).toBeInTheDocument();
+  });
+
+  it('renders good benchmark text when pct <= 100', () => {
+    const goodResult = { ...mockResult, vs_global_average_pct: 80 };
+    render(<ResultsDisplay result={goodResult} />);
+    expect(screen.getByText(/✅ You are below the global average/i)).toBeInTheDocument();
+  });
 });

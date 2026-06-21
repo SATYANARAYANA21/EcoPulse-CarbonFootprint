@@ -13,9 +13,6 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-from google.cloud import firestore
-from google.cloud.firestore_v1 import FieldFilter
-
 from app.models.carbon import CarbonResult, InsightItem
 
 if TYPE_CHECKING:
@@ -26,9 +23,27 @@ logger = logging.getLogger(__name__)
 COLLECTION = "carbon_entries"
 
 # ---------------------------------------------------------------------------
-# In-memory fallback store (keyed by device_id, list of entries)
+# Local JSON fallback store (keyed by device_id, list of entries)
 # ---------------------------------------------------------------------------
-_memory_store: dict[str, list[dict[str, Any]]] = {}
+import json
+import os
+
+_LOCAL_HISTORY_FILE = "local_history.json"
+
+def _load_local_history() -> dict[str, list[dict[str, Any]]]:
+    if os.path.exists(_LOCAL_HISTORY_FILE):
+        try:
+            with open(_LOCAL_HISTORY_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return {}
+    return {}
+
+def _save_local_history(data: dict[str, list[dict[str, Any]]]) -> None:
+    with open(_LOCAL_HISTORY_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+_memory_store: dict[str, list[dict[str, Any]]] = _load_local_history()
 
 
 # ---------------------------------------------------------------------------
@@ -36,8 +51,9 @@ _memory_store: dict[str, list[dict[str, Any]]] = {}
 # ---------------------------------------------------------------------------
 
 
-def _get_client() -> FirestoreClient:
+def _get_client() -> "FirestoreClient":
     """Return a Firestore client instance (lazy, not cached — Cloud Run handles pooling)."""
+    from google.cloud import firestore  # noqa: PLC0415
     return firestore.Client()
 
 
@@ -104,6 +120,7 @@ async def get_history(device_id: str, limit: int = 20) -> list[dict[str, Any]]:
     """
 
     def _query() -> list[dict[str, Any]]:
+        from google.cloud.firestore_v1 import FieldFilter  # noqa: PLC0415
         client = _get_client()
         query = (
             client.collection(COLLECTION)
@@ -160,7 +177,10 @@ async def save_entry_memory(
     if device_id not in _memory_store:
         _memory_store[device_id] = []
     _memory_store[device_id].insert(0, entry)  # newest first
-    logger.debug("Saved in-memory entry %s for device %s", doc_id, device_id[:8])
+    
+    _save_local_history(_memory_store)
+    
+    logger.debug("Saved local JSON entry %s for device %s", doc_id, device_id[:8])
     return doc_id
 
 

@@ -13,8 +13,7 @@ import json
 import logging
 from typing import Any
 
-import vertexai
-from vertexai.generative_models import GenerationConfig, GenerativeModel
+import httpx
 
 from app.core.config import get_settings
 from app.models.insights import InsightItem
@@ -79,7 +78,7 @@ async def generate_insights_gemini(
     breakdown: dict[str, float],
     total_kg: float,
 ) -> list[InsightItem]:
-    """Call Vertex AI Gemini 1.5 Flash to generate personalized carbon insights.
+    """Call Google Gemini API via REST to generate personalized carbon insights.
 
     Args:
         ranked_categories: Sorted list of {category, kg, percentage} dicts (biggest first).
@@ -93,38 +92,40 @@ async def generate_insights_gemini(
         GeminiUnavailableError: If Gemini returns an error, invalid JSON, or times out.
     """
     settings = get_settings()
+    api_key = getattr(settings, "GEMINI_API_KEY", None)
+    if not api_key:
+        raise GeminiUnavailableError("GEMINI_API_KEY is not set.")
 
     try:
-        vertexai.init(project=settings.PROJECT_ID, location=settings.REGION)
-
-        model = GenerativeModel(settings.GEMINI_MODEL)
-
         prompt = _build_prompt(ranked_categories, breakdown, total_kg)
+        
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.4,
+                "topP": 0.8,
+                "maxOutputTokens": 1024,
+            }
+        }
+        
+        model_name = getattr(settings, "GEMINI_MODEL", "gemini-1.5-flash")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
-        generation_config = GenerationConfig(
-            temperature=0.4,  # Low temp for consistent, factual outputs
-            top_p=0.8,
-            max_output_tokens=1024,
-        )
-
-        # Run synchronous SDK call in a thread-pool to avoid blocking event loop
-        response = await asyncio.wait_for(
-            asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: model.generate_content(
-                    prompt,
-                    generation_config=generation_config,
-                ),
-            ),
-            timeout=15.0,  # 15-second hard timeout
-        )
-
-        raw_text = response.text.strip()
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+            
+        resp_data = response.json()
+        raw_text = resp_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+        raw_text = raw_text.strip()
 
         # Strip potential markdown code fences Gemini sometimes adds
         if raw_text.startswith("```"):
-            raw_text = raw_text.split("\n", 1)[1]
-            raw_text = raw_text.rsplit("```", 1)[0].strip()
+            if "\n" in raw_text:
+                raw_text = raw_text.split("\n", 1)[1]
+            if "```" in raw_text:
+                raw_text = raw_text.rsplit("```", 1)[0]
+            raw_text = raw_text.strip()
 
         raw_insights: list[dict[str, Any]] = json.loads(raw_text)
 

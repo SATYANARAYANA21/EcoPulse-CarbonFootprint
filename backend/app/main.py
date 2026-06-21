@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import logging
 import os
+
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any, cast
@@ -74,7 +76,13 @@ app.add_middleware(SecurityHeadersMiddleware)
 # 2. CORS — allow the Vite dev server in development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        # Vercel preview & production domains
+        "https://ecopulse-carbon-footprint.vercel.app",
+        "https://*.vercel.app",
+    ],
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
     max_age=3600,
